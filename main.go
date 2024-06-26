@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/http/cookiejar"
 	"os"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -21,6 +22,8 @@ var KADAI_LIST_URL = "https://room.chuo-u.ac.jp/ct/home_library_query"
 
 var DURATION_UNTIL_DEADLINE_STANDARD time.Duration = 48 * time.Hour
 
+var EXECUTABLE_DIR string
+
 type Kadai struct {
 	title     string
 	titleUrl  string
@@ -30,10 +33,47 @@ type Kadai struct {
 }
 
 func main() {
-	err := run()
+	err := initiator()
 	if err != nil {
-		log.Fatal(err)
+		sendMessage("notifyKadaiに重大なエラーが発生しました", TOKEN)
+		panic(err)
 	}
+	err = run()
+	if err != nil {
+		handleErr(err)
+	}
+}
+
+func initiator() error {
+	path, err := os.Executable()
+	if err != nil {
+		return err
+	}
+	EXECUTABLE_DIR = filepath.Dir(path)
+	return nil
+}
+
+func fileFullPath(file string) string {
+	return filepath.Join(EXECUTABLE_DIR, file)
+}
+
+func handleErr(er error) {
+	logFile := fileFullPath("err.log")
+	f, err := os.OpenFile(logFile, os.O_WRONLY|os.O_APPEND, 0)
+	if err != nil {
+		panic(err)
+	}
+	defer f.Close()
+
+	log.SetOutput(f)
+	log.Println("start")
+
+	err = sendMessage("notifyKadaiに重大エラーが発生しました。", TOKEN)
+	if err != nil {
+		log.Println(err)
+	}
+	log.Println(er)
+	log.Printf("end\n\n")
 }
 
 func e(f string, err error) error {
