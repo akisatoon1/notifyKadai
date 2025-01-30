@@ -76,11 +76,16 @@ func handleErr(er error) {
 	log.Printf("end\n\n")
 }
 
+// return formatted error message
 func e(f string, err error) error {
 	return fmt.Errorf("%v: %v", f, err.Error())
 }
 
 func run() error {
+	//
+	// get html page with a list of kadais
+	//
+
 	jar, err := cookiejar.New(nil)
 	if err != nil {
 		return e("cookiejar.New", err)
@@ -104,6 +109,11 @@ func run() error {
 	if err != nil {
 		return e("goquery.NewDocumentFromReader", err)
 	}
+
+	//
+	// get kadai with less than 48 hours remaining until the deadline
+	// and convert them into structured data
+	//
 
 	var kadais []Kadai
 	err = nil
@@ -130,6 +140,10 @@ func run() error {
 	if err != nil {
 		return err
 	}
+
+	//
+	// create notified message
+	//
 
 	message := "\n"
 	if len(kadais) == 0 {
