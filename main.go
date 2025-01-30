@@ -154,6 +154,7 @@ func run() error {
 		for _, k := range kadais {
 			message += fmt.Sprintf("%v\n", k.title)
 			message += fmt.Sprintf("(%v)\n", k.course)
+			message += fmt.Sprintf("締め切り:%v\n", k.deadline.Format("2006-01-02 15:04"))
 			message += "\n"
 		}
 		message += KADAI_LIST_URL
